@@ -1,7 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let entries = [], promptEvent, currentReading = '', boundaryTimer;
-const RELEASE = '20260925-4';
+const RELEASE = '20261014-5';
 
 function day(now = new Date()) {
   const date = new Date(now);
@@ -14,6 +14,42 @@ function index(n, length) {
   x = Math.imul(x ^ (x >>> 15), 0x735a2d97);
   return ((x ^ (x >>> 15)) >>> 0) % length;
 }
+// PDF exports can contain discretionary hyphens and invisible layout marks.
+function cleanReading(value) {
+  return String(value ?? '').normalize('NFKC')
+    .replace(/\u00ad/g, '-')
+    .replace(/[\u200b-\u200f\u202a-\u202e\u2060-\u2069\ufeff]/g, '')
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .replace(/\bJ esus\b/g, 'Jesus').replace(/\bJ oão\b/g, 'João')
+    .replace(/\bjQuem\b/g, 'Quem').replace(/[ \t]+/g, ' ').trim();
+}
+let titleFrame;
+function fitReadingTitle() {
+  const title = $('title');
+  if (!title.clientWidth) return;
+  title.style.fontSize = '';
+  const rootSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  let size = parseFloat(getComputedStyle(title).fontSize);
+  const minimum = Math.min(size, 1.25 * rootSize);
+  // Prefer up to three lines, but let very long titles grow at the readable minimum.
+  while (size > minimum && title.scrollHeight > parseFloat(getComputedStyle(title).lineHeight) * 3 + 1) {
+    size = Math.max(minimum, size - 0.5);
+    title.style.fontSize = `${size}px`;
+  }
+}
+function scheduleTitleFit() {
+  cancelAnimationFrame(titleFrame);
+  titleFrame = requestAnimationFrame(fitReadingTitle);
+}
+window.addEventListener('resize', scheduleTitleFit);
+if ('ResizeObserver' in window) {
+  let previousWidth = -1;
+  new ResizeObserver(items => {
+    const width = items[0].contentRect.width;
+    if (width !== previousWidth) { previousWidth = width; scheduleTitleFit(); }
+  }).observe($('title'));
+}
+if (document.fonts) document.fonts.ready.then(scheduleTitleFit);
 function paint(number, readingIndex) {
   const scene = ((number % 4) + 4) % 4;
   const positions = ['0% 0%', '100% 0%', '0% 100%', '100% 100%'];
@@ -36,14 +72,16 @@ function render() {
   const key = `${number}:${entries.length}:${readingIndex}`;
   if (key === currentReading) return;
   const e = entries[readingIndex];
-  $('source').textContent = e.book;
-  $('title').textContent = e.title;
-  $('text').textContent = e.text;
-  $('credit').textContent = e.author + (e.chapter ? ' · ' + e.chapter : '');
+  $('source').textContent = cleanReading(e.book);
+  $('title').textContent = cleanReading(e.title);
+  scheduleTitleFit();
+  $('text').textContent = cleanReading(e.text);
+  $('credit').textContent = cleanReading(e.author + (e.chapter ? ' · ' + e.chapter : ''));
   currentReading = key;
 }
 function refresh() {
   render();
+  scheduleTitleFit();
   clearTimeout(boundaryTimer);
   const now = new Date();
   const next = new Date(now);
