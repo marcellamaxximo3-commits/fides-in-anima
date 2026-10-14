@@ -1,7 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let entries = [], promptEvent, currentReading = '', boundaryTimer;
-const RELEASE = '20261014-5';
+const RELEASE = '20261014-6';
 
 function day(now = new Date()) {
   const date = new Date(now);
