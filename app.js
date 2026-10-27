@@ -1,7 +1,7 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let entries = [], promptEvent, currentReading = '', boundaryTimer;
-const RELEASE = '20261027-7';
+const RELEASE = '20261027-8';
 const SOURCE_GROUPS = [
   ['Vinha de Luz'],
   ['O Evangelho segundo o Espiritismo'],
