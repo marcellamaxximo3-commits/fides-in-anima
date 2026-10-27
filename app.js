@@ -1,7 +1,15 @@
 'use strict';
 const $ = id => document.getElementById(id);
 let entries = [], promptEvent, currentReading = '', boundaryTimer;
-const RELEASE = '20261014-6';
+const RELEASE = '20261027-7';
+const SOURCE_GROUPS = [
+  ['Vinha de Luz'],
+  ['O Evangelho segundo o Espiritismo'],
+  ['Sinal Verde', 'Pai Nosso'],
+  ['Nos Domínios da Mediunidade'],
+  ['Mecanismos da Mediunidade'],
+  ['O Livro dos Médiuns']
+];
 
 function day(now = new Date()) {
   const date = new Date(now);
@@ -66,7 +74,9 @@ function render() {
   const psalm = index(number, 150) + 1;
   $('psalm').textContent = `Ler Salmo ${psalm} no jw.org ↗`;
   $('psalm').href = `https://www.jw.org/pt/biblioteca/biblia/bi12/livros/salmos/${psalm}/`;
-  const readingIndex = entries.length ? index(number, entries.length) : 0;
+  const group = SOURCE_GROUPS[index(number, SOURCE_GROUPS.length)];
+  const candidates = entries.map((entry, position) => group.includes(entry.book) ? position : -1).filter(position => position >= 0);
+  const readingIndex = candidates.length ? candidates[index(number ^ 0x51ed270b, candidates.length)] : 0;
   paint(number, readingIndex);
   if (!entries.length) return;
   const key = `${number}:${entries.length}:${readingIndex}`;

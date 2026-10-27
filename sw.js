@@ -1,5 +1,5 @@
-const CACHE = 'fides-20261014-6';
-const ASSETS = ['./', './index.html', './style.css?v=20261014-6', './app.js?v=20261014-6', './leituras.json?v=20261014-6', './aquarelas.png', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'fides-20261027-7';
+const ASSETS = ['./', './index.html', './style.css?v=20261027-7', './app.js?v=20261027-7', './leituras.json?v=20261027-7', './aquarelas.png', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(url => new Request(url, {cache: 'reload'})))).then(() => self.skipWaiting()));
 });
